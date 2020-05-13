@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<style>
+    .form-check{
+      margin-left: 10px;
+
+    }
+    @media (min-width: 859px) {
+  .col-md-center {
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+  }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+<script>
+  function error_alert(msg){
+
+    var error_box= document.getElementById('erroralert');
+    error_box.innerHTML =  '<div id="errorbody"   class="alert alert-danger">'+msg+'</div>'
+
+  }
+  
+  var generated_csrf_token = "{{ csrf_token }}";
+  function create_survey(){
+      returned_dict =get_question_text()
+
+      if(returned_dict['error']!=''){
+        error_alert(returned_dict['error'])
+        console.log(returned_dict['error'])
+        return
+      }
+      var title_ = document.getElementById('edittitle').innerHTML;
+      var desc_ = document.getElementById('editdesc').innerHTML;
+
+      if(title_ =='&lt;Edit title Here&gt;'){
+        error_alert("Please add a title!")
+        console.log("Please add a title!")
+        return
+      }
+
+      //window.onbeforeunload = null;
+        var title_ = document.getElementById('edittitle').innerHTML;
+        var desc_ = document.getElementById('editdesc').innerHTML;
+        
+
+
+        
+        var survey_post_url = '/survey_creator/' +'{{survey.pk}}'+'/'+"{{page}}"
+
+        if('{{survey.pk}}'==-1){
+          survey_post_url= '/survey_creator'
+        }
+
+        $.post({
+        url: survey_post_url,
+        headers:{ 'X-CSRFToken': generated_csrf_token},
+        data: {
+
+          'question':JSON.stringify(returned_dict),
+          'title': title_,
+          'description':desc_,
+        },
+        dataType: 'json',
+        success: function (data) {
+
+
+
+          var nextbtn = document.getElementById('nextpagesurvey');
+
+
+          if(data.error==''){
+            
+            var next_survey_page = parseInt("{{page}}") +1
+            window.location.href = '/survey_creator/' +data.pk+'/'+next_survey_page;
+          }
+          else{
+            console.log(data.error)
+          }
+        }
+      });
+  }
+
+
+    window.onbeforeunload = function(){
+      return 'Are you sure you want to leave?';
+  };
+  function removeElement(id) {
+
+    //console.log(document.getElementById('radio1'))
+    var elem = document.getElementById(id);
+    return elem.parentNode.removeChild(elem);
+  }
+  function removeRadio(){
+    var radioButtons = document.querySelectorAll('.form-check-input')
+    if(radioButtons.length==0){
+        return;
+     }
+     removeElement("radio"+radioButtons.length)
+
+  }
+
+  function get_question_text(){
+      var returned_dict ={}
+      var question_ = document.getElementById('QuestionText');
+      if(question_){
+        question_ = question_.innerHTML
+        if(question_=='Enter Question Here'){
+            returned_dict['error'] = 'Add a question text!';
+            return returned_dict
+        }
+      }
+      else{
+        returned_dict['error'] = 'Something went wrong';
+        return returned_dict
+      }
+      select_picker = document.getElementsByClassName('selectpicker');
+      select_picker =select_picker[0].value
+
+
+      
+      if(select_picker=='Radio options'){
+
+          returned_dict['question'] = question_
+          returned_dict['error'] = ''
+          returned_dict['type'] ='radio'
+          var radio_choices= document.querySelectorAll('.form-check-label')
+          var radio_choices_s = ''
+          if((radio_choices.length)==0){
+            returned_dict['error'] = 'You must append a possible answer!'
+          }
+          //console.log($('#testID').val().toString())
+          var radio_choices_arr = []
+          for (let i = 0; i < radio_choices.length; i++) {
+                radio_choices_arr.push(radio_choices[i].innerHTML)
+                //var radio_choice_  = radio_choices[i]
+                //radio_choices_s = radio_choices_s  + ','+radio_choice_.innerHTML
+                //console.log(radio_choices)
+          }
+          returned_dict['choices'] = radio_choices_arr.join(',')
+          return returned_dict
+
+          //returned_dict_['choices']=''
+
+      }
+      else if(select_picker=='Text question'){
+        
+        returned_dict['error'] = ''
+        returned_dict['question'] = question_
+        returned_dict['type'] ='text'
+        return returned_dict
+      }
+      else if(select_picker=='Integer Question'){
+        
+        returned_dict['error'] = ''
+        returned_dict['question'] = question_
+        returned_dict['type'] ='integer'
+        return returned_dict
+      }
+      else if(select_picker=='Float Question'){
+
+        returned_dict['error'] = ''
+        returned_dict['question'] = question_
+        returned_dict['type'] ='float'
+        return returned_dict
+      }
+      
+
+      //console.log(document.querySelectorAll('.form-check-input'))
+  }
+
+
+
+  function appendRadio(){
+    var target = document.getElementById('QuestionDOM');
+    var radioButtons_length =document.querySelectorAll('.form-check-input').length
+    radioButtons_length =radioButtons_length+1
+    if(document.querySelectorAll('.form-check-input').length==5){
+        return;
+     }
+    var str = target.innerHTML
+     str = str+ '<div id="radio'+ radioButtons_length +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+          str= str+'<label id="radio_text'+ radioButtons_length +'" contenteditable="true" class="form-check-label" for="radio-319">*Edit Answer*</label></div>'
+     target.innerHTML = str
+
+
+  }
+
+
+  function select_question_type(object){
+          console.log('object is ')
+          console.log(object)
+          if(object.value=='Radio options'){
+            $('.radquestion').show()
+            var target = document.getElementById('QuestionDOM');
+
+            
+            
+            var elem = document.getElementById("appendRadio");
+            var str = target.innerHTML
+            if(!elem){
+               str= str + ' <a id="appendRadio" type="button" onclick=\'appendRadio()\' class="radquestion btn btn-primary waves-effect waves-light ml-3 mb-3 ">Append</a>'
+            str = str +'<a id="removeRadio" type="button" onclick=\'removeRadio()\' class=" radquestion btn btn-primary waves-effect waves-light ml-3 mb-3 ">Remove</a>'
+            }
+           
+
+
+            if(document.querySelectorAll('.form-check-input').length!=0){
+                return;
+            }
+
+            str = str+ '<div id="radio1" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+            str= str+'<label contenteditable="true" class="form-check-label" for="radio-319">*Edit Answer*</label></div>'
+            target.innerHTML = str
+        }
+        else if(object.value == 'Integer Question'){
+          
+             $('.radquestion').hide()
+        
+
+        }
+        else if(object.value == 'Text question'){
+          $('.radquestion').hide()
+        }
+        else if(object.value == 'Float Question'){
+          $('.radquestion').hide()
+        }
+      }
+  
+</script>
+
+<div class = 'd-flex align-items-center'>
+<div class="container mt-5   ">
+    <div class="row ">
+      <div class="col-md-4 col-md-center">
+        <h2 class="font-weight-bold text-center mb-2">Medical Survey Creator</h2>
+      </div>
+
+      
+    </div>
+    
+    <div class="row">
+
+      <div class="col-md-5 col-md-center" >
+        <!-- Card Regular -->
+        <div class="card card-cascade">
+
+          <!-- Card content -->
+          <div class="card-body card-body-cascade text-center">
+
+            <!-- Title -->
+            <h4  id='edittitle' style='font-weight:100;' contenteditable="true" class="card-title">{{survey.name}}</h4>
+            <hr>
+            <!-- Subtitle -->
+            <i class="fas fa-poll-h fa-3x blue-text mb-2"></i>
+            <p class="font-weight-normal">Creator: Anonymous</p>
+            <!-- Text -->
+            <p  id='editdesc' contenteditable="true" >{{survey.description}} 
+            </p>
+          </div>
+          <hr>
+           
+
+
+          <select  class="selectpicker" onclick =  'select_question_type(this)'>
+          <option id="defaultselectpickerval" value="" selected disabled hidden>Choose Type of question</option>
+          <option >Radio options</option>
+          <option  >Integer Question</option>
+          
+          <option >Text question</option>
+          <option  >Float Question</option>
+          </select>
+          <p id="QuestionText" contenteditable="true" class="text-center">Enter Question Here</p>
+
+          <div id = 'QuestionDOM'>
+                <!-- <div class="form-check mb-4" >
+                  <input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>
+                  <label class="form-check-label" for="radio-119">Very good</label>
+                </div>
+
+
+                -->
+          </div>
+          <hr>
+
+
+          <div class="survey-footer clearfix">
+            <a  type="button" id='nextpagesurvey' onclick="create_survey()" class=" btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
+              <i class="fa fa-paper-plane ml-1"></i>
+
+            </a>
+
+            <a  type="button" href="/survey_creator/{{survey.pk}}/{{page}}"  id='previouspagesurvey'  class=" btn btn-primary waves-effect waves-light ml-3 mb-3 ">  Previous
+            <i class="fa fa-paper-plane ml-1"></i>
+
+            </a>
+
+
+
+
+            
+            <a type="button" href="/"  class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+              data-dismiss="modal">Cancel</a>
+          </div>
+              <div id='erroralert'>
+             
+            </div>
+        </div>
+      </div>
+      <!-- Card Regular -->
+
+    </div>
+  </div>
+</div>
+
+
+  
+</div>
+
+
+<script>
+
+function add_existing_question(){
+  document.getElementById('defaultselectpickerval').remove()
+  var select_picker = document.getElementsByClassName('selectpicker');
+  
+ 
+  // document.getElementById('QuestionText').innerHTML = "{{question.choices}}"
+  // console.log(select_picker)
+  if('{{question}}'){
+
+    if('{{question.type}}'=='radio'){
+      $('.selectpicker').val("Radio options").change();
+      
+      select_question_type(document.getElementsByClassName('selectpicker')[0])
+      removeRadio()
+
+      var target = document.getElementById('QuestionDOM');
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      
+      var str = target.innerHTML
+
+      var current_choices_ = '{{question.choices}}'.split(',')
+      for(var i_ =1; i_<current_choices_.length+1;i_++){
+             str = str+ '<div id="radio'+ i_ +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+                      str= str+'<label id="radio_text'+ i_ +'" contenteditable="true" class="form-check-label" for="radio-319">'+
+                      current_choices_[i_-1]+'</label></div>'
+
+      }
+      target.innerHTML = str
+    }
+    else if('{{question.type}}'=='integer'){
+      $('.selectpicker').val('Integer Question').change();
+
+      //select_picker.value = "Integer Question"
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      
+      
+    }
+    else if('{{question.type}}'=='text'){
+      $('.selectpicker').val("Text question").change();
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      
+      
+    }
+
+    // var str = target.innerHTML
+    //  str = str+ '<div id="radio'+ radioButtons_length +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+    //       str= str+'<label id="radio_text'+ radioButtons_length +'" contenteditable="true" class="form-check-label" for="radio-319">*Edit Answer*</label></div>'
+    //  target.innerHTML = str
+  }
+}
+
+
+  add_existing_question()
+
+  if("{{page}}"==0){
+
+    document.getElementById('previouspagesurvey').remove()
+  }
+
+  else{
+
+    var previous_ = document.getElementById('previouspagesurvey')
+    var page_prev = '{{page}}'
+    page_prev = page_prev-1
+    previous_.href = '/survey_creator/'+{{survey.pk}}+'/'+page_prev
+  }
+  
+
+
+</script>
+
+{% endblock content %}	

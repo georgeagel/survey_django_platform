@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<style>
+    .form-check{
+      margin-left: 10px;
+
+    }
+    @media (min-width: 859px) {
+  .col-md-center {
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  }
+  
+</style>
+
+<script>
+
+  function delete_this_survey(){
+    var generated_csrf_token = "{{ csrf_token }}";
+    if(confirm('Are you sure you want to delete this survey?')==true){
+            var id = '{{survey.pk}}'
+            console.log(id)
+            if(id){ 
+                      console.log('lool')
+                        $.post({
+                          url: '/survey/delete_survey',
+                          headers:{ 'X-CSRFToken': generated_csrf_token},
+                          data: {
+
+                                'id': id,
+                              
+                          },
+                          dataType: 'json',
+                          success: function (data) {
+
+                            window.location.href = document.referrer
+
+                          }
+                        });
+           }
+    }
+
+    
+    
+  
+  }
+</script>
+
+
+<div class = 'd-flex align-items-center'>
+<div class="container mt-5   ">
+
+    <div class="row ">
+
+      <div class="col-md-4 col-md-center">
+        <h2 class="font-weight-bold text-center mb-2">Medical Survey</h2>
+
+      </div>
+
+      
+    </div>
+    
+    <div class="row">
+
+      <div class="col-md-5 col-md-center" >
+        <!-- Card Regular -->
+        <div class="card card-cascade">
+
+          <!-- Card content -->
+          <div class="card-body card-body-cascade text-center">
+
+            <!-- Title -->
+            <h4 class="card-title"><strong>{{survey.name}}</strong></h4>
+            <hr>
+            <!-- Subtitle -->
+            <i class="fas fa-poll-h fa-3x blue-text mb-2"></i>
+            <p class="font-weight-normal">Your opinion matters</p>
+            <!-- Text -->
+            <p>{{survey.description}} <span class="font-weight-bold"></span>
+            </p>
+          </div>
+          <hr>
+          <p class="text-center">Your rating:</p>
+          <div class="form-check mb-4" >
+            <input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>
+            <label class="form-check-label" for="radio-119">Very good</label>
+          </div>
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" name="group1" type="radio" id="radio-219" value="option2">
+            <label class="form-check-label" for="radio-219">Good</label>
+          </div>
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" name="group1" type="radio" id="radio-319" value="option3">
+            <label class="form-check-label" for="radio-319">Mediocre</label>
+          </div>
+          <div class="form-check mb-4">
+            <input class="form-check-input" name="group1" type="radio" id="radio-419" value="option4">
+            <label class="form-check-label" for="radio-419">Bad</label>
+          </div>
+          <div class="form-check mb-4">
+            <input class="form-check-input" name="group1" type="radio" id="radio-519" value="option5">
+            <label class="form-check-label" for="radio-519">Very bad</label>
+          </div>
+          <hr>
+
+          <div class="survey-footer clearfix">
+            <a type="button" class="btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
+              <i class="fa fa-paper-plane ml-1"></i>
+
+            </a>
+            <a type="button" class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+              data-dismiss="modal">Cancel</a>
+
+          </div>
+          <button onclick ='delete_this_survey()' type="button" class="btn btn-dark">Delete</button>
+          <button type="button" class="btn btn-info">Edit</button>
+
+        </div>
+      </div>
+      <!-- Card Regular -->
+
+    </div>
+  </div>
+</div>
+
+
+  
+</div>
+
+
+
+{% endblock content %}	

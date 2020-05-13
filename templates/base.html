@@ -1,0 +1,146 @@
+{# HTML5 declaration #}
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+    {# Make modifiable head elements #}
+    <head>
+        <title>{% block title %}Home {% endblock title %} | Take Surveys </title>
+       
+
+        {% block head_favicon %}
+           
+            <!-- <img src="{% static "images/favicon.jpeg" %}"  width="150" height="100" alt="My image"/> -->
+ 
+        {% endblock head_favicon %}
+        {% block head_meta %}
+            {% block head_meta_charset %}
+                <meta http-equiv="Content-Type"
+                      content="text/html; charset=utf-8" />
+            {% endblock head_meta_charset %}
+            {% block head_meta_contentlanguage %}
+                <meta http-equiv="Content-Language" value="en-US" />
+            {% endblock head_meta_contentlanguage %}
+            {% block head_meta_viewport %}
+                <meta name="viewport"
+                      content="width=device-width, initial-scale=1.0">
+            {% endblock head_meta_viewport %}
+        {% endblock head_meta %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!-- <link href="https://fonts.googleapis.com/css?family=Quicksand:300,400,500,700" rel="stylesheet"> -->
+        
+        
+
+
+        <!-- <link rel="stylesheet" href="{% static 'css/global.css' %}"> -->
+    </head>
+    <body>
+    {# Navigation Menu #}
+    <header>
+                        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                        <div class="container">
+                          <a class="navbar-brand cursor-onhover" href="/">
+                            <span class="nav-title">Survey Based Analytics</span>
+                          </a>
+                        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                        </button>
+
+                        <div class="collapse navbar-collapse" id="navbarToggler">
+
+                        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                        <li class="nav-item"> 
+                        <a class="nav-link" href="/">Home</a>
+                        </li>
+                        {% if request.user.is_authenticated %}
+                            <li class="nav-item"> 
+                            <a class="nav-link" href="/">Monitor</a>
+                            </li>
+                        {% endif %}
+                        </ul>
+
+                        <ul class="navbar-nav my-2 my-lg-0">
+
+
+
+
+                        
+                       {% if request.user.is_authenticated %}
+
+                      <!--   {% if  user %}
+                        <li class="nav-item">
+                        <a class="nav-link" href="/admin" style="padding-right:34px;pointer-events: none;">Logged In as: {{user}}</a>
+                        </li>
+
+                        {% endif %}
+
+                        {% if is_admin %}
+
+                        <li class="nav-item">
+                        <a class="nav-link" href="/admin">History</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin">Logout</a>
+                          </li>
+                        {%else%}
+                         <li class="nav-item">
+                            <a class="nav-link" href="/admin" >History</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="/admin">Logout</a>
+                          </li>
+                          {% endif %}
+ -->            
+                            <li class="nav-item">
+                                <a class="nav-link disabled" href="/">Logged in as : {{request.user.username}}</a>
+                            </li>
+                         <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="/register">Register</a>
+                        </li>
+
+                        {% else %}
+                        <li class="nav-item">
+                        <a class="nav-link" href="/user_login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="/register">Register</a>
+                        </li>
+                        {% endif %}
+
+                        </ul>
+                        </div>
+                        </div>
+                        </nav>
+
+</header>
+    {# The Document Body #}
+    <div id="site-wrapper">
+        {% block content %}
+            if you see this, something is wrong!
+        {% endblock content %}
+    </div>
+    {# The Footer #}
+    <div class="footer">
+        
+    </div>
+</body>
+{% block footer_javascript %}
+        {% block footer_javascript_site %}
+                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" />
+        {% endblock footer_javascript_site %}
+        {% block footer_javascript_section %}{% endblock footer_javascript_section %}
+        {% block footer_javascript_page %}{% endblock footer_javascript_page %}
+    {% endblock footer_javascript %}
+</html>
+
