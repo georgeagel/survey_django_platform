@@ -27,6 +27,7 @@ urlpatterns = [
     path('survey_creator/<int:survey_id>/<int:page>',views.survey_creator, name='survey_creator'),
     path('survey/<int:survey_id>/<int:survey_page>', views.survey_page, name='survey_page'),
     path('survey/delete_survey', views.delete_survey, name='delete_survey'),
+    path('survey/delete_question', views.delete_question, name='delete_survey'),
 
 ]
 #urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

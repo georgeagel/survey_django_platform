@@ -90,7 +90,7 @@ def validate_choices(choices):
     if len(values) < 2 + empty:
         msg = "The selected field requires an associated list of choices."
         msg += " Choices must contain more than one item."
-        raise ValidationError(msg)
+        raise Exception(msg)
 
 
 CHOICES_HELP_TEXT = (

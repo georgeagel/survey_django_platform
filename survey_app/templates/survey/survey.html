@@ -15,11 +15,33 @@
     margin-left: auto;
     margin-right: auto;
   }
+
+  .form-control{
+      margin-bottom: 22px;
+
   }
-  
+
+  .custom_button {
+    min-width: 110px;
+    max-width: 110px;
+    min-height: :50px;
+    min-width: : 50px;
+}
+}
+  }
 </style>
 
 <script>
+
+  function previous_page(){
+      var current_page = parseInt("{{page}}")-1
+      window.location.href = '/survey/' +'{{survey.pk}}'+'/'+current_page;
+  }
+
+  function next_page(){
+      var current_page = parseInt("{{page}}")+1
+      window.location.href = '/survey/' +'{{survey.pk}}'+'/'+current_page;
+  }
 
   function delete_this_survey(){
     var generated_csrf_token = "{{ csrf_token }}";
@@ -44,8 +66,14 @@
                           }
                         });
            }
-    }
+    }}
 
+    function edit_survey(){
+    var id = '{{survey.pk}}'
+        if(id){ 
+          window.location.href = '/survey_creator/'+id+'/0'
+        }
+    
     
     
   
@@ -59,7 +87,7 @@
     <div class="row ">
 
       <div class="col-md-4 col-md-center">
-        <h2 class="font-weight-bold text-center mb-2">Medical Survey</h2>
+        <h2 class="font-weight-bold text-center mb-2">Take a Survey</h2>
 
       </div>
 
@@ -85,45 +113,48 @@
             <p>{{survey.description}} <span class="font-weight-bold"></span>
             </p>
           </div>
-          <hr>
-          <p class="text-center">Your rating:</p>
-          <div class="form-check mb-4" >
-            <input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>
-            <label class="form-check-label" for="radio-119">Very good</label>
+         
+          <p id="QuestionText" class="text-center"></p>
+
+          <div id = 'QuestionDOM'>
+                <!-- <div class="form-check mb-4" >
+                  <input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>
+                  <label class="form-check-label" for="radio-119">Very good</label>
+                </div>
+
+
+                -->
           </div>
 
-          <div class="form-check mb-4">
-            <input class="form-check-input" name="group1" type="radio" id="radio-219" value="option2">
-            <label class="form-check-label" for="radio-219">Good</label>
-          </div>
-
-          <div class="form-check mb-4">
-            <input class="form-check-input" name="group1" type="radio" id="radio-319" value="option3">
-            <label class="form-check-label" for="radio-319">Mediocre</label>
-          </div>
-          <div class="form-check mb-4">
-            <input class="form-check-input" name="group1" type="radio" id="radio-419" value="option4">
-            <label class="form-check-label" for="radio-419">Bad</label>
-          </div>
-          <div class="form-check mb-4">
-            <input class="form-check-input" name="group1" type="radio" id="radio-519" value="option5">
-            <label class="form-check-label" for="radio-519">Very bad</label>
-          </div>
-          <hr>
+          <input type="password" class="custom_input form-control " id="inputInt" placeholder="Password">
 
           <div class="survey-footer clearfix">
-            <a type="button" class="btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
+            <a type="button" id='nextpagesurvey' onclick="next_page()" class="btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
               <i class="fa fa-paper-plane ml-1"></i>
 
             </a>
+
+            <a  type="button"  onclick="previous_page()"  id='previouspagesurvey'  class=" custom_button btn btn-primary waves-effect waves-light ml-3 mb-3 ">  Previous
+            <i class="fa fa-paper-plane ml-1"></i>
+
+            </a>
+
             <a type="button" class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
               data-dismiss="modal">Cancel</a>
 
           </div>
-          <button onclick ='delete_this_survey()' type="button" class="btn btn-dark">Delete</button>
-          <button type="button" class="btn btn-info">Edit</button>
-
+          <button onclick ='delete_this_survey()' id='deletethissurvey' type="button" class="btn btn-dark">Delete</button>
+         
+          <button onclick ='edit_survey()' id='editthissurvey' type="button" class="btn btn-info">Edit</button>
         </div>
+                <nav aria-label="Demo of active current page number">
+
+                   <ul id="survey_creator_pages" class="pagination">
+  
+                
+                   </ul>
+
+                </nav>
       </div>
       <!-- Card Regular -->
 
@@ -135,6 +166,125 @@
   
 </div>
 
+<script>
+  function add_existing_question(){
+  
+  
+  
+ 
+  // document.getElementById('QuestionText').innerHTML = "{{question.choices}}"
+  // console.log(select_picker)
+  if('{{question}}'){
+
+    if('{{question.type}}'=='radio'){
+      
+      //removeRadio()
+      document.getElementById('inputInt').remove()
+      var target = document.getElementById('QuestionDOM');
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      
+      var str = target.innerHTML
+
+      var current_choices_ = '{{question.choices}}'.split(',')
+      for(var i_ =1; i_<current_choices_.length+1;i_++){
+             str = str+ '<div id="radio'+ i_ +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+                      str= str+'<label id="radio_text'+ i_ +'" contenteditable="true" class="form-check-label" for="radio-319">'+
+                      current_choices_[i_-1]+'</label></div>'
+
+      }
+      target.innerHTML = str
+    }
+    else if('{{question.type}}'=='integer'){
+      
+      //select_picker.value = "Integer Question"
+      var question_ = document.getElementById('QuestionText');
+
+      question_.innerHTML = '{{question.question_text}}'
+      document.getElementById('inputInt').placeholder='Integer type answer'
+      document.getElementById('inputInt').type="number"
+    }
+    else if('{{question.type}}'=='text'){
+     
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      document.getElementById('inputInt').placeholder='Text type answer'
+      document.getElementById('inputInt').type="text"
+      
+    }
+    else if('{{question.type}}'=='float'){
+      
+      document.getElementById('inputInt').type="number"
+      //select_picker.value = "Integer Question"
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      document.getElementById('inputInt').placeholder='Float type answer'
+      
+    }
+
+    // var str = target.innerHTML
+    //  str = str+ '<div id="radio'+ radioButtons_length +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+    //       str= str+'<label id="radio_text'+ radioButtons_length +'" contenteditable="true" class="form-check-label" for="radio-319">*Edit Answer*</label></div>'
+    //  target.innerHTML = str
+    }
+  }
+
+
+  add_existing_question()
+
+
+
+
+
+  function init_paginator(){
+  var page_len = "{{questions_length}}"
+  var pagination_ul = document.getElementById('survey_creator_pages')
+  pagination_ul.innerHTM=''
+  for(var i=1;i<=page_len;i++){
+
+    if(i=="{{page}}"){
+     pagination_ul.innerHTML=pagination_ul.innerHTML+'<li class="page-item  active"><a class="page-link" >'+i+'</a></li>'
+     continue;
+    }
+    pagination_ul.innerHTML=pagination_ul.innerHTML+'<li class="page-item "><a class="page-link" >'+i+'</a></li>'
+  }
+
+}
+init_paginator()
+
+
+
+
+ if("{{page}}"==0){
+   
+    
+        document.getElementById('previouspagesurvey').remove()
+        
+          document.getElementById('inputInt').remove()
+        document.getElementById('QuestionText').remove()
+   
+    
+    
+    
+
+  }
+  else{
+             
+        document.getElementById('deletethissurvey').remove()
+         document.getElementById('editthissurvey').remove()
+        console.log("{{questions_length}}")
+             
+  }
+
+  if("{{page}}"=="{{questions_length}}"){
+    document.getElementById('nextpagesurvey').remove()
+  }
+
+
+
+
+
+</script>
 
 
 {% endblock content %}	

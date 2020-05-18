@@ -15,23 +15,91 @@
     margin-left: auto;
     margin-right: auto;
   }
+
+  .custom_button {
+    min-width: 110px;
+    max-width: 110px;
+    min-height: :50px;
+    min-width: : 50px;
+}
 }
   }
 </style>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
 <script>
-  function error_alert(msg){
+  function delete_page(){
+    
+              
+              if(confirm('Remove Question?')==false){
+                return;
+              }
+              var generated_csrf_token = "{{ csrf_token }}";
+        
+              var id = '{{survey.pk}}'
+              console.log(id)
+              if(id){ 
+                        
+                          $.post({
+                            url: '/survey/delete_question',
+                            headers:{ 'X-CSRFToken': generated_csrf_token},
+                            data: {
+                                'question_number': '{{page}}',
+                                  'id': id,
+                                
+                            },
+                            dataType: 'json',
+                            success: function (data) {
+                              console.log('leoeeo')
+                              window.onunload = null
+                                window.onbeforeunload= null;
+                              if(data.error==''){
+                                  
+                                window.onunload = null
+                                window.onbeforeunload= null;
+                                // if(confirm('delete Page?')==true){
+                                  var previous_page = parseInt("{{page}}") -1
+            
+                                   window.location.href = '/survey_creator/' +id+'/'+previous_page;
+                                // }
+                                
+                              }
+                              else{
+                                error_alert(data.error)
+                              }
+                            }
+                          });
+             
+      
+      
+                  }
+}
 
-    var error_box= document.getElementById('erroralert');
-    error_box.innerHTML =  '<div id="errorbody"   class="alert alert-danger">'+msg+'</div>'
 
+
+  function save_page(){
+    window.onunload= null
+    window.onbeforeunload= null;
+    var create_ = create_survey(true)
+    if(create_==-1){
+      return
+    }
+    
+    window.location.href = '/survey_list/0';
   }
-  
-  var generated_csrf_token = "{{ csrf_token }}";
-  function create_survey(){
-      returned_dict =get_question_text()
 
+  function cancel_survey(){
+    
+    windows.onbeforeunload=null
+    windows.onunload=delete_this_survey
+    window.location.href = '/survey_list/0';
+  }
+
+
+  function previous_page(){
+
+    returned_dict =get_question_text()
+      
       if(returned_dict['error']!=''){
         error_alert(returned_dict['error'])
         console.log(returned_dict['error'])
@@ -47,8 +115,7 @@
       }
 
       //window.onbeforeunload = null;
-        var title_ = document.getElementById('edittitle').innerHTML;
-        var desc_ = document.getElementById('editdesc').innerHTML;
+       
         
 
 
@@ -77,21 +144,234 @@
 
 
           if(data.error==''){
+            window.onunload = null
+            window.onbeforeunload= null;
+
+            var next_survey_page = parseInt("{{page}}") -1
             
-            var next_survey_page = parseInt("{{page}}") +1
             window.location.href = '/survey_creator/' +data.pk+'/'+next_survey_page;
+            
+           
+
           }
           else{
-            console.log(data.error)
+
+            error_alert(data.error)
           }
+        },
+        error: function(xhr, textStatus, error){
+      console.log(xhr.statusText);
+      console.log(textStatus);
+      console.log(error);
+        }
+      });
+  }
+
+  function error_alert(msg){
+
+    var error_box= document.getElementById('erroralert');
+    error_box.innerHTML =  '<div id="errorbody"   class="alert alert-danger">'+msg+'</div>'
+
+  }
+  
+
+
+  //create new survey
+  function create_new_survey(){
+      var title_ = document.getElementById('edittitle').innerHTML;
+      var desc_ = document.getElementById('editdesc').innerHTML;
+
+      if(title_ =='&lt;Edit title Here&gt;'){
+        error_alert("Please add a title!")
+        console.log("Please add a title!")
+        return
+      }
+      var survey_post_url = '/survey_creator/' +'{{survey.pk}}'+'/'+"{{page}}"
+
+        if('{{survey.pk}}'==-1){
+          survey_post_url= '/survey_creator'
+        }
+      
+      $.post({
+        url: survey_post_url,
+        headers:{ 'X-CSRFToken': generated_csrf_token},
+        data: {
+
+            
+          'title': title_,
+          'description':desc_,
+        },
+        dataType: 'json',
+        success: function (data) {
+
+          var nextbtn = document.getElementById('nextpagesurvey');
+
+          console.log(data.error)
+          if(data.error==''){
+            window.onunload = null
+            window.onbeforeunload= null;
+            var next_survey_page = parseInt("{{page}}") +1
+            
+            window.location.href = '/survey_creator/' +data.pk+'/'+next_survey_page;
+            
+            
+
+          }
+          else{
+
+            error_alert(data.error)
+          }
+        },
+        error: function(xhr, textStatus, error){
+      console.log(xhr.statusText);
+      console.log(textStatus);
+      console.log(error);
         }
       });
   }
 
 
+
+
+  var generated_csrf_token = "{{ csrf_token }}";
+  function create_survey(save){
+      returned_dict =get_question_text()
+
+      if(returned_dict['error']!=''){
+        error_alert(returned_dict['error'])
+        console.log(returned_dict['error'])
+        return -1
+      }
+      var title_ = document.getElementById('edittitle').innerHTML;
+      var desc_ = document.getElementById('editdesc').innerHTML;
+
+      if(title_ =='&lt;Edit title Here&gt;'){
+        error_alert("Please add a title!")
+        console.log("Please add a title!")
+        return -1
+      }
+
+      //window.onbeforeunload = null;
+       
+        
+
+
+        
+        var survey_post_url = '/survey_creator/' +'{{survey.pk}}'+'/'+"{{page}}"
+
+        if('{{survey.pk}}'==-1){
+          survey_post_url= '/survey_creator'
+        }
+
+        $.post({
+        url: survey_post_url,
+        headers:{ 'X-CSRFToken': generated_csrf_token},
+        data: {
+
+          'question':JSON.stringify(returned_dict),
+          'title': title_,
+          'description':desc_,
+        },
+        dataType: 'json',
+        success: function (data) {
+
+
+
+          var nextbtn = document.getElementById('nextpagesurvey');
+
+
+          if(data.error==''){
+
+            window.onunload = null
+            window.onbeforeunload= null;
+            var next_survey_page = parseInt("{{page}}") +1
+            if(save==false){
+              window.location.href = '/survey_creator/' +data.pk+'/'+next_survey_page;
+            }
+            else{
+              return -1
+            }
+
+          }
+          else{
+
+            error_alert(data.error)
+            return -1
+
+          }
+        },
+        error: function(xhr, textStatus, error){
+      console.log(xhr.statusText);
+      console.log(textStatus);
+      console.log(error);
+        }
+      });
+  }
+
+
+
+  function delete_this_survey(){
+    if(confirm("Delete this survey?")){
+    var generated_csrf_token = "{{ csrf_token }}";
+    
+            var id = '{{survey.pk}}'
+            console.log(id)
+            if(id){ 
+                      console.log('lool')
+                        $.post({
+                          url: '/survey/delete_survey',
+                          headers:{ 'X-CSRFToken': generated_csrf_token},
+                          data: {
+
+                                'id': id,
+                              
+                          },
+                          dataType: 'json',
+                          success: function (data) {
+
+                            window.location.href = '/survey_list/0'
+
+                          }
+                        });
+           
+    }}
+  }
+
+
     window.onbeforeunload = function(){
+      window.onunload = function delete_this_survey(){
+        console.log('looool')
+    var generated_csrf_token = "{{ csrf_token }}";
+    
+            var id = '{{survey.pk}}'
+            console.log(id)
+            if(id){ 
+                      console.log('lool')
+                        $.post({
+                          url: '/survey/delete_survey',
+                          headers:{ 'X-CSRFToken': generated_csrf_token},
+                          data: {
+
+                                'id': id,
+                              
+                          },
+                          dataType: 'json',
+                          success: function (data) {
+
+                            window.location.href = document.referrer
+
+                          }
+                        });
+           
+    }}
+     
+
       return 'Are you sure you want to leave?';
   };
+
+  window.onunload = null
+  
+
   function removeElement(id) {
 
     //console.log(document.getElementById('radio1'))
@@ -240,7 +520,7 @@
 <div class="container mt-5   ">
     <div class="row ">
       <div class="col-md-4 col-md-center">
-        <h2 class="font-weight-bold text-center mb-2">Medical Survey Creator</h2>
+        <h2 class="font-weight-bold text-center mb-2">Survey Creator/Editor</h2>
       </div>
 
       
@@ -269,7 +549,7 @@
            
 
 
-          <select  class="selectpicker" onclick =  'select_question_type(this)'>
+          <select  id="selectpickersurvey" class="selectpicker" onclick =  'select_question_type(this)'>
           <option id="defaultselectpickerval" value="" selected disabled hidden>Choose Type of question</option>
           <option >Radio options</option>
           <option  >Integer Question</option>
@@ -292,31 +572,52 @@
 
 
           <div class="survey-footer clearfix">
-            <a  type="button" id='nextpagesurvey' onclick="create_survey()" class=" btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
+            <a  type="button" id='nextpagesurvey' onclick="create_survey(false)" class=" custom_button btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
               <i class="fa fa-paper-plane ml-1"></i>
 
             </a>
+              <i class="fa fa-paper-plane ml-1"></i>
+            <a  type="button" id='createnewsurvey' hidden='true' onclick="create_new_survey()" class=" custom_button btn btn-primary waves-effect waves-light ml-3 mb-3 "> Next
 
-            <a  type="button" href="/survey_creator/{{survey.pk}}/{{page}}"  id='previouspagesurvey'  class=" btn btn-primary waves-effect waves-light ml-3 mb-3 ">  Previous
+            </a>
+            <a  type="button"  onclick="previous_page()"  id='previouspagesurvey'  class=" custom_button btn btn-primary waves-effect waves-light ml-3 mb-3 ">  Previous
             <i class="fa fa-paper-plane ml-1"></i>
 
             </a>
 
 
 
-
             
-            <a type="button" href="/"  class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
-              data-dismiss="modal">Cancel</a>
+            
+         <!--    <a type="button" href="/survey_list/0"  onclick="save_page()"  class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+              data-dismiss="modal">Cancel</a> -->
+
+              <a type="button"  id='savepagesurvey'    onclick="save_page()" class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+              data-dismiss="modal">Save And Exit</a>
+               <a type="button"   id='deletepagesurvey' onclick="delete_page()" class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+              data-dismiss="modal">Remove</a>
           </div>
               <div id='erroralert'>
              
             </div>
+            <button id='deletethissurvey' onclick ='delete_this_survey()' type="button" class="btn btn-dark">Delete Survey</button>
         </div>
+
+
+        <nav aria-label="Demo of active current page number">
+
+  <ul id="survey_creator_pages" class="pagination">
+  
+                
+  </ul>
+
+</nav>
       </div>
       <!-- Card Regular -->
 
     </div>
+
+
   </div>
 </div>
 
@@ -373,6 +674,15 @@ function add_existing_question(){
       
       
     }
+    else if('{{question.type}}'=='float'){
+      $('.selectpicker').val('Float Question').change();
+
+      //select_picker.value = "Integer Question"
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      
+      
+    }
 
     // var str = target.innerHTML
     //  str = str+ '<div id="radio'+ radioButtons_length +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
@@ -385,20 +695,63 @@ function add_existing_question(){
   add_existing_question()
 
   if("{{page}}"==0){
-
+   
+    document.getElementById('nextpagesurvey').remove()
     document.getElementById('previouspagesurvey').remove()
-  }
+    document.getElementById('deletepagesurvey').remove()
+    document.getElementById('selectpickersurvey').remove()
+    document.getElementById('QuestionText').remove()
+    document.getElementById('savepagesurvey').remove()
+    document.getElementById('createnewsurvey').hidden = false
+    if("{{questions_length}}"==0){
+      console.log("{{questions_length}}")
+      document.getElementById('createnewsurvey').innerHTML = 'New Question'
+      document.getElementById('deletethissurvey').remove()
+    }
+   
+    
 
+  }
   else{
-
-    var previous_ = document.getElementById('previouspagesurvey')
-    var page_prev = '{{page}}'
-    page_prev = page_prev-1
-    previous_.href = '/survey_creator/'+{{survey.pk}}+'/'+page_prev
+             
+                document.getElementById('deletethissurvey').remove()
+              
+              console.log("{{questions_length}}")
+              if("{{page}}"=="{{questions_length}}"){
+              
+      
+                  console.log("{{questions_length}}")
+               document.getElementById('nextpagesurvey').innerHTML = 'New'
+      
+        
+          }
   }
+
+  // else{
+
+  //   var previous_ = document.getElementById('previouspagesurvey') 
+  //   var page_prev = '{{page}}'
+
+  //   page_prev = page_prev-1
+  //   previous_.href = '/survey_creator/'+{{survey.pk}}+'/'+page_prev
+  // }
   
 
+function init_paginator(){
+  var page_len = "{{questions_length}}"
+  var pagination_ul = document.getElementById('survey_creator_pages')
+  pagination_ul.innerHTM=''
+  for(var i=1;i<=page_len;i++){
 
+    if(i=="{{page}}"){
+     pagination_ul.innerHTML=pagination_ul.innerHTML+'<li class="page-item  active"><a class="page-link" >'+i+'</a></li>'
+     continue;
+    }
+    pagination_ul.innerHTML=pagination_ul.innerHTML+'<li class="page-item "><a class="page-link" >'+i+'</a></li>'
+  }
+
+}
+init_paginator()
 </script>
 
 {% endblock content %}	

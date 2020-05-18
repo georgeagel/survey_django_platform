@@ -18,11 +18,65 @@ class IndexView(TemplateView):
 def survey_page(request, survey_id,survey_page):
     try:
         survey_ = Survey.objects.get(pk= int(survey_id))
-        
-        return render(request, 'survey/survey.html',{'survey' : survey_})
+        questions_ = Question.objects.filter(survey=survey_)
+        if(survey_page==0):
+            return render(request, 'survey/survey.html',{'survey' : survey_,'questions_length':len(questions_),'page':survey_page})      
+        else:
+            return render(request, 'survey/survey.html',{'survey' : survey_,'questions_length':len(questions_),'page':survey_page,'question':questions_[int(survey_page)-1]})     
     except Exception as e:
+        print(e)
+        raise Http404(e)
+
+
+
+
+def print_all_questions(survey_id):
+    survey_objects_=Survey.objects.get(pk= int(survey_id))
+    all_survey_questions_ = Question.objects.filter(survey=survey_objects_)
+    print('START QUESTIONS_')
+    for q_ in all_survey_questions_:
+        print(q_.question_text)
+    print("END QUESTIONS")
+
+
+
+@api_view(['GET', 'POST'])
+def delete_question(request):
+    
+    if request.method == 'POST':
+        data_req = request.data
+        # json_request_=request.json()
+        id_ = data_req['id']
+        question_num_ = data_req['question_number']
+
         
-        return render(request, 'survey/survey.html',{"name":str(e)})
+        
+
+        try:
+            survey_objects_=Survey.objects.get(pk= int(id_))
+            
+            all_survey_questions_ = Question.objects.filter(survey=survey_objects_)
+            print('length'+str(len(all_survey_questions_)))
+            question_ = all_survey_questions_[int(question_num_)-1]
+
+            question_.delete()
+        
+
+        except IndexError:
+            print('indexerror')
+            Response({'error':''},200)
+
+        except Exception as e:
+           
+            return Response({'error':str(e)},200)
+
+        print('Question '+str(question_num_)+' Deleted')
+
+        return Response({'error':''},200)
+        #redirect_to_ = data_req['survey_list_page']
+        #return HttpResponseRedirect(request.session['login_from'])
+
+
 
 
 
@@ -36,14 +90,15 @@ def delete_survey(request):
         
         survey_objects_=Survey.objects.get(pk= int(id_))
         all_survey_questions_ = Question.objects.filter(survey=survey_objects_)
-        
+
+
         try:
             if(survey_objects_):
                 survey_objects_.delete()
             for question_ in all_survey_questions_:
                 question_.delete()
         except Exception as e:
-            return Response(404)
+            Response({'error':str(e),'pk': -1},200)
         
             
         return Response(200)
@@ -52,7 +107,24 @@ def delete_survey(request):
 
 
 
-
+@api_view(['GET', 'POST'])
+def get_questions_length(request):
+    print('delete_survey')
+    if request.method == 'POST':
+        try:
+            data_req = request.data
+            # json_request_=request.json()
+            id_ = data_req['id']
+            
+            survey_objects_=Survey.objects.get(pk= int(id_))
+            all_survey_questions_ = Question.objects.filter(survey=survey_objects_)
+        
+        
+        except Exception as e:
+            return Response(404)
+        
+            
+        return Response({'error':'','length': str(len(all_survey_questions_))},200)
 
 
 
@@ -65,7 +137,8 @@ def survey_creator(request,survey_id =-1 ,page=0):
         # json_request_=request.json()
         survey_title_ = data_req['title']
         survey_desc_ = data_req['description']
-        survey_question_ = json.loads(data_req['question'])
+        
+
 
 
         try:
@@ -76,23 +149,22 @@ def survey_creator(request,survey_id =-1 ,page=0):
                 survey_new =Survey.objects.get(pk= int(survey_id))
                 question_new = Question.objects.filter(survey=survey_new)
                 
-                if(len(question_new)>=page+1):
+                if(page<=len(question_new) and page!=0):
 
-                    question_new = question_new[page]
-                else:
+                    question_new = question_new[page-1]
+                elif(page>len(question_new)):
                     question_new = Question()
+                else:
+                    pass
             else:
+                
                 survey_new = Survey()
-                question_new = Question()
+
 
             #question_new = Question()
 
             
-            question_new.type = survey_question_['type']
-            if('choices' in survey_question_):
-                question_new.choices = survey_question_['choices']
-
-            question_new.question_text= survey_question_['question']
+            
 
             
             #survey_new = Survey()
@@ -102,18 +174,34 @@ def survey_creator(request,survey_id =-1 ,page=0):
             survey_new.display_by_question = False
             survey_new.description = survey_desc_
             
-            question_new.survey = survey_new
+
+
+            if(page!=0):
+                survey_question_ = json.loads(data_req['question'])
+                question_new.type = survey_question_['type']
+                if('choices' in survey_question_):
+                    question_new.choices = survey_question_['choices']
+
+                question_new.question_text= survey_question_['question']
+                print('itsin page:'+str(page)+' '+str(question_new.question_text))
+                
+
+                #print(question_new.question_text)
+                question_new.survey = survey_new
+
+                question_new.save()
+                print_all_questions(survey_id)
 
 
                     
             survey_new.save()
-            question_new.save()
+            #question_new.save()
             
         except Exception as e:
             #print('elelelelelelel')
             print(e)
-            print('108')
-            #return Response({'error':str(e),'pk': str(survey_new.pk)},500)
+            
+            return Response({'error':str(e),'pk': -1},200)
         else:
             return Response({'error':"",'pk': str(survey_new.pk)},200)
 
@@ -126,18 +214,30 @@ def survey_creator(request,survey_id =-1 ,page=0):
         survey_new.name = '<Edit title Here>'
         survey_new.description = '<Edit Description Here>'
         survey_new.pk = -1
-        return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page,'question':None})
+        return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page,'questions_length':0,'question':None})
+    elif(page==0):
+        try:
+            survey_new = Survey.objects.get(pk= int(survey_id))
+            questions_ = Question.objects.filter(survey=survey_new)
+
+            return render(request, 'survey/survey_create.html',{'survey' : survey_new,'questions_length':len(questions_),'page':page}) 
+        except Exception as e:
+            print(e)
+            raise Http404(e)
     else:
         questions_ = None
         try:
             survey_new = Survey.objects.get(pk= int(survey_id))
             questions_ = Question.objects.filter(survey=survey_new)
 
-            if(len(questions_)>=page+1):
-                print(questions_[int(page)].choices)
-                return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page,'question':questions_[int(page)]})    
+
+            if(page<=len(questions_)):
+
+                
+                
+                return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page,'questions_length':len(questions_),'question':questions_[int(page)-1]})    
             else:
-                return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page}) 
+                return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page,'questions_length':len(questions_)}) 
 
         except Exception as e:
             print(e)
@@ -152,7 +252,7 @@ def survey_creator(request,survey_id =-1 ,page=0):
     #survey_new.name = '<Edit title Here>'
     #survey_new.description = '<Edit Description Here>'
 
-    #return render(request, 'survey/survey_create.html',{'survey' : survey_new,'page':page})
+    #return render(json_request_, 'survey/survey_create.html',{'survey' : survey_new,'page':page})
 
 
 
