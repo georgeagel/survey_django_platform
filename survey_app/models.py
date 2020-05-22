@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 
 
@@ -31,12 +31,18 @@ from django.db import models
 #         return reverse("survey-detail", kwargs={"id": self.pk})
 
 
+
+
+
+
+
 class Survey(models.Model):
     name = models.CharField(("Name"), max_length=400)
     description = models.TextField(("Description"), )
     is_published = models.BooleanField(("Users can see it and answer it"),)
     need_logged_user = models.BooleanField(("Only authenticated users can see it and answer it"),)
     display_by_question = models.BooleanField(("Display by question"),)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=("Survey"), related_name="Survey" ) 
     #template = models.CharField(("Template"), max_length=255, null=True, blank=True)
 
     class Meta(object):
@@ -161,7 +167,7 @@ class Answer(models.Model):
     created = models.DateTimeField(("Creation date"), auto_now_add=True)
     updated = models.DateTimeField(("Update date"), auto_now=True)
     body = models.TextField(("Content"), blank=True, null=True)
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=("Survey"), related_name="questions" ) 
 
 
     def __init__(self, *args, **kwargs):
@@ -189,4 +195,4 @@ class Answer(models.Model):
                 if answer not in choices:
                     msg = "Impossible answer '{}'".format(body)
                     msg += " should be in {} ".format(choices)
-                    raise ValidationError(msg)
+                    raise Exception(msg)

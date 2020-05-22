@@ -35,7 +35,7 @@ def register(request):
             user = authenticate(username=username, password=password)
             login(request, user)
 
-            return HttpResponse('A new user has been successfully registered!')
+            return HttpResponseRedirect('/')
     else:
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form,'errors':form.errors})
@@ -54,6 +54,7 @@ def user_login(request):
             else:
                 return HttpResponse("Your account was inactive.")
         else:
+            
             return render(request, 'login.html', {'errors':{'error':'Invalid Username or Password'}})
     else:
         return render(request, 'login.html', {})

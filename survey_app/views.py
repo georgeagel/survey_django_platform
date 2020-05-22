@@ -3,10 +3,11 @@ from django.http import HttpResponse,HttpResponseRedirect,Http404
 from .forms import NameForm
 from django.views.generic import TemplateView
 from django.contrib import admin
-from .models import Survey,Question
+from .models import Survey,Question,Answer
 import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.core.paginator import Paginator,PageNotAnInteger
 list_of_surveys_ =['If you like GeeksforGeeks','edasdsdsds','scary move','example','lol','ela re m','kala re','aaaaaaaaaaaaaaaaa','ena','toxelidoni','3232']
 
 class IndexView(TemplateView):
@@ -14,15 +15,119 @@ class IndexView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
+
+
+@api_view(['GET', 'POST']) 
+def index_view(request):
+    
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect('/user_login')
+
+
+    
+
+
+    current_user = request.user
+
+    if(current_user):
+        surveys_created_= Survey.objects.filter(user= current_user)
+        surveys_created_lists= [surveys_created_[i:i+4] for i in range(0,len(surveys_created_),4)]
+
+
+        current_surveys_created_page= request.GET.get('created_page')
+
+        paginator = Paginator(surveys_created_, 5)
+        range_surveys_created = list(paginator.page_range)[0:paginator.num_pages]
+        try:
+            surveys_created_ = paginator.page(current_surveys_created_page)
+        except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+            surveys_created_ = paginator.page(1)
+        except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+            surveys_created_ = paginator.page(paginator.num_pages)
+
+
+
+        current_surveys_created_page= request.GET.get('taken_page')
+        answers_query = Answer.objects.filter(user=current_user)
+        surveys_list= []
+        for answer_ in answers_query:
+            survey_ = answer_.question.survey
+            if(survey_ in surveys_list):
+                continue
+            else:
+                surveys_list.append(survey_)
         
+
+
+        paginator = Paginator(surveys_list, 5)
+        range_surveys_list = list(paginator.page_range)[0:paginator.num_pages]
+        
+        try:
+            surveys_list = paginator.page(1)
+        except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+            surveys_list = paginator.page(1)
+        except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+            surveys_list = paginator.page(paginator.num_pages)
+
+
+        return render(request, "index.html",{'surveys_taken' : {"paginator":surveys_list,"range":range_surveys_list},'surveys_created': {"paginator":surveys_created_,"range":range_surveys_created}})     
+    else:
+        return HttpResponseRedirect('/user_login')
+
+
+@api_view(['GET', 'POST']) 
 def survey_page(request, survey_id,survey_page):
+    
     try:
         survey_ = Survey.objects.get(pk= int(survey_id))
         questions_ = Question.objects.filter(survey=survey_)
+
+        current_user = request.user
+        if request.method == 'POST':
+            try:
+                data_req = request.data
+                if(survey_page==0):
+                    return Response({'error':'','pk': -1},200)
+                else:
+                    answer_text = data_req['body']
+
+                    question_ = questions_[int(survey_page)-1]
+                    
+                    answers_query = Answer.objects.filter(question=question_,user=current_user)
+                    answer_ = None
+                    if(len(answers_query)==0):
+                        answer_ = Answer()
+                    else:
+                        answer_ = answers_query[0]
+
+                    answer_.question= question_
+                    answer_.body = answer_text
+                    answer_.user = current_user
+                    answer_.save()
+                    return Response({'error':'','pk': -1},200)
+            except Exception as e:
+                print(e)
+                return Response({'error':str(e),'pk': -1},200)
+
+
+    
         if(survey_page==0):
             return render(request, 'survey/survey.html',{'survey' : survey_,'questions_length':len(questions_),'page':survey_page})      
         else:
-            return render(request, 'survey/survey.html',{'survey' : survey_,'questions_length':len(questions_),'page':survey_page,'question':questions_[int(survey_page)-1]})     
+            question_ = questions_[int(survey_page)-1]
+            answers_query = Answer.objects.filter(question=question_,user=current_user)
+            answer_ = None
+
+            if(len(answers_query)!=0):
+                answer_= answers_query[0]
+                return render(request, 'survey/survey.html',{'survey' : survey_,'questions_length':len(questions_),'page':survey_page,'answer':answer_,'question':questions_[int(survey_page)-1]})     
+            else:
+                return render(request, 'survey/survey.html',{'survey' : survey_,'questions_length':len(questions_),'page':survey_page,'question':question_,'answer':answer_})     
+
     except Exception as e:
         print(e)
         raise Http404(e)
@@ -130,6 +235,7 @@ def get_questions_length(request):
 
 @api_view(['GET', 'POST'])
 def survey_creator(request,survey_id =-1 ,page=0):
+    
     if request.method == 'POST':
         print('POST')
         data_req = request.data
@@ -142,6 +248,7 @@ def survey_creator(request,survey_id =-1 ,page=0):
 
 
         try:
+            current_user = request.user
         #print(survey_question_)
 
 
@@ -172,6 +279,7 @@ def survey_creator(request,survey_id =-1 ,page=0):
             survey_new.is_published = True
             survey_new.need_logged_user = False
             survey_new.display_by_question = False
+            survey_new.user = current_user
             survey_new.description = survey_desc_
             
 
@@ -206,6 +314,7 @@ def survey_creator(request,survey_id =-1 ,page=0):
             return Response({'error':"",'pk': str(survey_new.pk)},200)
 
 
+    
 
     if(survey_id ==-1):
         survey_new = Survey()
@@ -270,6 +379,7 @@ def survey_list(request,page):
     if(len(list_of_surveys)==0):
         list_of_surveys= []
         number_of_pages_ = 1
+        page_list_=[1]
     else:
         number_of_pages_ = (len(list_of_surveys)-1)//5 +1
         page_list_ =[ i+1  for i in range(number_of_pages_)]

@@ -51,8 +51,7 @@
                             dataType: 'json',
                             success: function (data) {
                               console.log('leoeeo')
-                              window.onunload = null
-                                window.onbeforeunload= null;
+                                
                               if(data.error==''){
                                   
                                 window.onunload = null
@@ -85,14 +84,14 @@
       return
     }
     
-    window.location.href = '/survey_list/0';
+    window.location.href = '/survey_list/1';
   }
 
   function cancel_survey(){
     
     windows.onbeforeunload=null
     windows.onunload=delete_this_survey
-    window.location.href = '/survey_list/0';
+    window.location.href = '/survey_list/1';
   }
 
 
@@ -282,10 +281,11 @@
 
           if(data.error==''){
 
-            window.onunload = null
-            window.onbeforeunload= null;
+            
             var next_survey_page = parseInt("{{page}}") +1
             if(save==false){
+              window.onunload = null
+            window.onbeforeunload= null;
               window.location.href = '/survey_creator/' +data.pk+'/'+next_survey_page;
             }
             else{
@@ -329,7 +329,7 @@
                           dataType: 'json',
                           success: function (data) {
 
-                            window.location.href = '/survey_list/0'
+                            window.location.href = '/survey_list/1'
 
                           }
                         });
@@ -339,39 +339,65 @@
 
 
     window.onbeforeunload = function(){
-      window.onunload = function delete_this_survey(){
-        console.log('looool')
-    var generated_csrf_token = "{{ csrf_token }}";
+      confirm('eleos')
+    //   window.onunload = function delete_this_survey(){
+    //     console.log('looool')
+    // var generated_csrf_token = "{{ csrf_token }}";
     
-            var id = '{{survey.pk}}'
-            console.log(id)
-            if(id){ 
-                      console.log('lool')
-                        $.post({
-                          url: '/survey/delete_survey',
-                          headers:{ 'X-CSRFToken': generated_csrf_token},
-                          data: {
+    //         var id = '{{survey.pk}}'
+    //         console.log(id)
+    //         if(id){ 
+    //                   console.log('lool')
+    //                     $.post({
+    //                       url: '/survey/delete_survey',
+    //                       headers:{ 'X-CSRFToken': generated_csrf_token},
+    //                       data: {
 
-                                'id': id,
+    //                             'id': id,
                               
-                          },
-                          dataType: 'json',
-                          success: function (data) {
+    //                       },
+    //                       dataType: 'json',
+    //                       success: function (data) {
 
-                            window.location.href = document.referrer
+    //                         window.location.href = document.referrer
 
-                          }
-                        });
+    //                       }
+    //                     });
            
-    }}
+    // }
+  }
      
 
-      return 'Are you sure you want to leave?';
-  };
+    
 
-  window.onunload = null
+
   
+// window.onunload = function delete_this_survey(){
+//     //     console.log('looool')
+//     // var generated_csrf_token = "{{ csrf_token }}";
+    
+//     //         var id = '{{survey.pk}}'
+//     //         console.log(id)
+//     //         if(id){ 
+//     //                   console.log('lool')
+//     //                     $.post({
+//     //                       url: '/survey/delete_survey',
+//     //                       headers:{ 'X-CSRFToken': generated_csrf_token},
+//     //                       data: {
 
+//     //                             'id': id,
+                              
+//     //                       },
+//     //                       dataType: 'json',
+//     //                       success: function (data) {
+
+//     //                         window.location.href = document.referrer
+
+//     //                       }
+//     //                     });
+           
+//     // }
+//   }
   function removeElement(id) {
 
     //console.log(document.getElementById('radio1'))
@@ -540,7 +566,7 @@
             <hr>
             <!-- Subtitle -->
             <i class="fas fa-poll-h fa-3x blue-text mb-2"></i>
-            <p class="font-weight-normal">Creator: Anonymous</p>
+             <p  id='creator'  >{{survey.user}} 
             <!-- Text -->
             <p  id='editdesc' contenteditable="true" >{{survey.description}} 
             </p>

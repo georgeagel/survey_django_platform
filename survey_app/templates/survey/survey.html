@@ -34,14 +34,169 @@
 <script>
 
   function previous_page(){
+    
       var current_page = parseInt("{{page}}")-1
-      window.location.href = '/survey/' +'{{survey.pk}}'+'/'+current_page;
+      var saved_answer_ = save_answer(current_page)
+      
+      if('{{page}}'==0 || saved_answer_!=null){
+        window.location.href = '/survey/' +'{{survey.pk}}'+'/'+current_page;
+      }
+      else if(saved_answer_==null){
+
+      }
   }
 
   function next_page(){
+  
       var current_page = parseInt("{{page}}")+1
-      window.location.href = '/survey/' +'{{survey.pk}}'+'/'+current_page;
+      var saved_answer_ = save_answer(current_page)
+      //console.log(save_answer())
+      
+      if('{{page}}'==0 || saved_answer_!=null){
+        window.location.href = '/survey/' +'{{survey.pk}}'+'/'+current_page;
+      }
+      else if(saved_answer_==null){
+
+      }
+     
+      
   }
+
+
+function findSelection(field) {
+    var test = document.getElementsByName(field);
+    var sizes = test.length;
+    alert(sizes);
+    for (i=0; i < sizes; i++) {
+            if (test[i].checked==true) {
+            alert(test[i].value + ' you got a value');     
+            return test[i].value;
+        }
+    }
+}
+  
+  
+
+  function save_answer(page){
+
+    if('{{page}}'==0){
+      return null
+    }
+    var answer_ = get_answer()
+    if(answer_==null){
+      return null
+    }
+    else{
+              var returned_value = null
+              var generated_csrf_token = "{{ csrf_token }}";
+              survey_post_url = '/survey/'+'{{survey.pk}}/' +'{{page}}'
+
+
+              $.post({
+              url: survey_post_url,
+              headers:{ 'X-CSRFToken': generated_csrf_token},
+              data: {
+
+              'body': String(answer_)
+             
+              },
+              dataType: 'json',
+              success: function (data) {
+
+
+
+              var nextbtn = document.getElementById('nextpagesurvey');
+
+
+
+              if(data.error==''){
+                  
+                  //window.onunload = null
+                  //window.onbeforeunload= null;
+
+                  //var next_survey_page = parseInt("{{page}}") -1
+                  
+                 window.location.href = '/survey/' +'{{survey.pk}}'+'/'+page;
+              }
+              else{
+
+                error_alert(data.error)
+                return null
+              }
+              },
+              error: function(xhr, textStatus, error){
+                console.log(xhr.statusText);
+                console.log(textStatus);
+                console.log(error);
+              }
+              });
+              return returned_value
+
+
+    }
+  }
+
+
+  function get_answer(){
+    try {
+        if('{{page}}'==0){
+          return 
+        }
+        var question_type = '{{question.type}}'
+        
+        if(question_type == 'radio'){
+          //console.log($('input[name=group1]:checked', '#survey_creator_pages').val())
+          var radio_answers = document.getElementsByClassName("form-check-input")
+          for(var i =0;i<radio_answers.length;i++){
+            if(radio_answers[i].checked==true){
+              return(radio_answers[i].value)
+            }
+          }
+
+        }
+        else if(question_type== 'text'){
+            var input_answer = document.getElementById('inputAnswer').value
+            return input_answer
+        }
+        else if(question_type =='float'){
+            var input_answer = document.getElementById('inputAnswer').value
+            if(!isNaN(parseFloat(input_answer))) {
+                return input_answer    
+            }
+            else{
+              error_alert('Answer is not an float')
+              return null
+            }
+        }
+        else if(question_type == 'integer'){
+            var input_answer = document.getElementById('inputAnswer').value
+            if(parseInt(input_answer) == input_answer){
+              return input_answer
+            }
+            else{
+              error_alert('Answer is not an Integer')
+              return null
+            }
+
+        }
+      }
+      catch(err){
+        error_alert(err)
+        return null
+      }
+
+
+  }
+
+  function error_alert(msg){
+
+    var error_box= document.getElementById('erroralert');
+    error_box.innerHTML =  '<div id="errorbody"   class="alert alert-danger">'+msg+'</div>'
+
+  }
+
+
+
 
   function delete_this_survey(){
     var generated_csrf_token = "{{ csrf_token }}";
@@ -126,7 +281,7 @@
                 -->
           </div>
 
-          <input type="password" class="custom_input form-control " id="inputInt" placeholder="Password">
+          <input type="password" class="custom_input form-control " id="inputAnswer" placeholder="Password">
 
           <div class="survey-footer clearfix">
             <a type="button" id='nextpagesurvey' onclick="next_page()" class="btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
@@ -139,7 +294,7 @@
 
             </a>
 
-            <a type="button" class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+            <a type="button" href='/survey_list/1' class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
               data-dismiss="modal">Cancel</a>
 
           </div>
@@ -155,9 +310,10 @@
                    </ul>
 
                 </nav>
+                <div id='erroralert'>
       </div>
       <!-- Card Regular -->
-
+      
     </div>
   </div>
 </div>
@@ -170,7 +326,7 @@
   function add_existing_question(){
   
   
-  
+  console.log('{{answer.body}}')
  
   // document.getElementById('QuestionText').innerHTML = "{{question.choices}}"
   // console.log(select_picker)
@@ -179,7 +335,7 @@
     if('{{question.type}}'=='radio'){
       
       //removeRadio()
-      document.getElementById('inputInt').remove()
+      document.getElementById('inputAnswer').remove()
       var target = document.getElementById('QuestionDOM');
       var question_ = document.getElementById('QuestionText');
       question_.innerHTML = '{{question.question_text}}'
@@ -188,8 +344,20 @@
 
       var current_choices_ = '{{question.choices}}'.split(',')
       for(var i_ =1; i_<current_choices_.length+1;i_++){
-             str = str+ '<div id="radio'+ i_ +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
-                      str= str+'<label id="radio_text'+ i_ +'" contenteditable="true" class="form-check-label" for="radio-319">'+
+            var checked_= ''
+             if('{{answer}}'){
+
+                if( current_choices_[i_-1] == '{{answer.body}}' ){
+                  checked_= 'checked'
+                }
+
+             }
+             else{
+              checked_ = 'checked'
+             }
+
+             str = str+ '<div id="radio'+ i_ +'" class="radquestion form-check mb-4" > <input class="form-check-input" name="group1" type="radio" id="radio-119" value="'+current_choices_[i_-1]+'" '+checked_+'>';
+                      str= str+'<label id="radio_text'+ i_ +'"  class="form-check-label" for="radio-319">'+
                       current_choices_[i_-1]+'</label></div>'
 
       }
@@ -201,25 +369,36 @@
       var question_ = document.getElementById('QuestionText');
 
       question_.innerHTML = '{{question.question_text}}'
-      document.getElementById('inputInt').placeholder='Integer type answer'
-      document.getElementById('inputInt').type="number"
+      document.getElementById('inputAnswer').placeholder='Integer type answer'
+      document.getElementById('inputAnswer').type="number"
+       if('{{answer}}'){
+        console.log('eleoe')
+        console.log('{{answer.body}}')
+        document.getElementById('inputAnswer').value = '{{answer.body}}'
+      }
     }
     else if('{{question.type}}'=='text'){
      
       var question_ = document.getElementById('QuestionText');
       question_.innerHTML = '{{question.question_text}}'
-      document.getElementById('inputInt').placeholder='Text type answer'
-      document.getElementById('inputInt').type="text"
-      
+      document.getElementById('inputAnswer').placeholder='Text type answer'
+      document.getElementById('inputAnswer').type="text"
+       if('{{answer}}'){
+        console.log('{{answer.body}}')
+        document.getElementById('inputAnswer').value = '{{answer.body}}'
+      }
     }
     else if('{{question.type}}'=='float'){
       
-      document.getElementById('inputInt').type="number"
+      document.getElementById('inputAnswer').type="number"
       //select_picker.value = "Integer Question"
       var question_ = document.getElementById('QuestionText');
       question_.innerHTML = '{{question.question_text}}'
-      document.getElementById('inputInt').placeholder='Float type answer'
-      
+      document.getElementById('inputAnswer').placeholder='Float type answer'
+
+      if('{{answer}}'){
+        document.getElementById('inputAnswer').value = '{{answer.body}}'
+      }
     }
 
     // var str = target.innerHTML
@@ -260,11 +439,11 @@ init_paginator()
     
         document.getElementById('previouspagesurvey').remove()
         
-          document.getElementById('inputInt').remove()
+          document.getElementById('inputAnswer').remove()
         document.getElementById('QuestionText').remove()
    
     
-    
+      
     
 
   }
@@ -283,6 +462,8 @@ init_paginator()
 
 
 
+  console.log('WWW')
+  console.log("{{answer}}")
 
 </script>
 

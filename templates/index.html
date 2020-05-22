@@ -6,26 +6,12 @@
 
 </style>
 <br>
-<p class="h4 text-center">Surveys You have Created</p>
 <br>
+
 <nav aria-label="Page navigation example">
- 
+ <p class="h2 text-center">User History</p>
 
 
-    <div >
-      <ul class="pagination">
-  {% for page in  number_of_pages %}
-    {% if page == 1%}
-    <li class="page-item" style='margin-left: 10px;'><a class="page-link" href="1">{{page}}</a></li>
-    {% else %}
-    <li class="page-item" ><a class="page-link" href={{page}}>{{page}}</a></li>
-    {%endif%}
-    {%endfor%} 
-
-        </ul>
-
-
-  </div>
 
   
     <!-- <li class="page-item"><a class="page-link" style='margin-left: 15px;' href="#">Previous</a></li>
@@ -33,21 +19,148 @@
     <li class="page-item"><a class="page-link" href="#">2</a></li>
     <li class="page-item"><a class="page-link" href="#">3</a></li>
     <li class="page-item"><a class="page-link" href="#">Next</a></li> -->
-  </ul>
+  
 </nav>
+
+
+<p class="h4 text-center">Surveys You have Created</p>
+
 <div class="list-group">
 
-  {% for survey_ in surveys %}
+  <div class="pagination">
+    <span class="step-links">
+       
+
+        <span class="current">
+           <ul class="pagination">
+          {% for page_ in surveys_created.range %}
+           
+                {%if page_ == request.GET.created_page%}
+
+                <li class="page-item " ><a class="page-link " href="#" onclick="created_page('{{page_}}')">{{page_}}</a></li>
+                {%else%}
+                  <li class="page-item " ><a class="page-link" href="#" onclick="created_page('{{page_}}')">{{page_}}</a></li>
+                {%endif%}
+            {%endfor%}  
+          </ul>
+        </span>
+
+         {%if request.GET.created_page %}
+               <p class="text-primary">Page: {{request.GET.created_page}}</p>
+              {%else%}
+               <p class="text-primary">Page: 1</p>
+              {%endif%}
+
+    </span>
+</div>
+  {% for survey_ in surveys_created.paginator %}
+    <a href="/survey/{{survey_.pk}}/0" class="list-group-item list-group-item-action">{{survey_.name}} , {{survey_.description}}</a>
+      
+    {%endfor%}
+
+
+
+
+
+  
+</div>
+
+<br>
+
+
+
+<p class="h4 text-center">Surveys You have Taken</p>
+<div class="list-group">
+
+
+  <div class="pagination">
+    <span class="step-links">
+        {% if surveys_taken.paginator.has_previous %}
+            <a href="?page={{ surveys_created.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+
+            <ul class="pagination">
+          {% for page_ in surveys_taken.range %}
+           
+                {%if page_ == request.GET.taken_page%}
+
+                <li class="page-item active" style='margin-left: 2px;'><a href="#" onclick="taken_page('{{page_}}')" class="page-link active"  >{{page_}}</a></li>
+                {%else%}
+                  <li class="page-item " style='margin-left: 2px;'><a class="page-link" href="#" onclick="taken_page('{{page_}}');">{{page_}}</a></li>
+                {%endif%}
+            {%endfor%}  
+
+          </ul>
+                {%if request.GET.taken_page %}
+               <p class="text-primary">Page: {{request.GET.taken_page}}</p>
+              {%else%}
+               <p class="text-primary">Page: 1</p>
+              {%endif%}
+        </span>
+
+        {% if surveys_taken.paginator.has_next %}
+            <a href="?created_page={{ surveys_created.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+  
+
+
+  {% for survey_ in surveys_taken.paginator %}
     <a href="/survey/{{survey_.pk}}/0" class="list-group-item list-group-item-action">{{survey_.name}} , {{survey_.description}}</a>
     
     {%endfor%}
+
+
 
   
 </div>
 
 
+<script>
+  console.log('{{surveys_created}}')
+
+  function created_page(page){ 
+  
+    var created_page = "{{request.GET.created_page}}"
+    var s_taken_page = "{{request.GET.taken_page}}"
+    var string_url = ""
+    if(s_taken_page){
+
+      string_url= string_url + "?taken_page="+s_taken_page + "&created_page="+page
+    }
+    else{
+      
+      string_url="?created_page="+page
+      console.log(string_url)
+    }
+
+    document.location.href = string_url;
+  }
+
+  function taken_page(page){ 
+
+    var created_page = "{{request.GET.created_page}}"
+    var s_taken_page = "{{request.GET.taken_page}}"
+    var string_url = ""
+    if(created_page){
+      string_url= string_url + "?created_page="+created_page + "&taken_page="+page
+    }
+    else{
+      string_url="?taken_page="+page
+    }
+
+    document.location.href = string_url;
+  }
 
 
-<p class="h4 text-center">Surveys You have Taken</p>
+
+</script>
+
+
+
+
 
 {% endblock content %}	
