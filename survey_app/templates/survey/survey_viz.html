@@ -1,0 +1,542 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<style>
+    .form-check{
+      margin-left: 10px;
+
+    }
+    @media (min-width: 859px) {
+  .col-md-center {
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .form-control{
+      margin-bottom: 22px;
+
+  }
+
+  .custom_button {
+    min-width: 110px;
+    max-width: 110px;
+    min-height: :50px;
+    min-width: : 50px;
+}
+}
+  }
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+
+<script>
+
+
+        function visualize_argument(pos){
+          if(pos==0){
+              document.getElementById("left_viz_argument").innerHTML = 'Question:{{question.question_text}}' + '   Type:{{question.type}}'
+             
+              
+
+            }
+          else if(pos==1){
+            document.getElementById("right_viz_argument").innerHTML = 'Question:{{question.question_text}}' + '   Type:{{question.type}}'
+                
+          }
+        }
+
+
+        function viz_these_questions(){
+
+
+            var current_page = parseInt("{{page}}")
+            var all_questions_to_viz=document.querySelectorAll('[id=q_to_visualize]');
+            var all_pks= []
+
+
+            for(var i=0; i < all_questions_to_viz.length;i++){
+
+                  all_pks.push(all_questions_to_viz[i].value)
+            }
+
+
+            if(all_pks.includes('{{question.pk}}') && document.getElementById("append_viz").checked==false){
+                  all_pks = all_pks.filter(function(e) { return e !== '{{question.pk}}' })
+
+            }
+
+
+
+            if(all_pks.length!=0){
+                  console.log(all_pks)
+
+                  window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks+'&viz=true'
+              }        
+            else{
+              window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page
+             }
+
+
+
+        }
+
+
+
+        function check_visualization_event(){
+
+                          var current_page = parseInt("{{page}}")
+
+
+                          var all_questions_to_viz=document.querySelectorAll('[id=q_to_visualize]');
+                          var all_pks= []
+
+
+                          for(var i=0; i < all_questions_to_viz.length;i++){
+
+                          all_pks.push(all_questions_to_viz[i].value)
+
+                          }
+
+                          if(all_pks.includes('{{question.pk}}') && document.getElementById("append_viz").checked==false){
+                          all_pks = all_pks.filter(function(e) { return e !== '{{question.pk}}' })
+
+                          }
+
+
+
+                          if(document.getElementById("append_viz").checked==true && "{{page}}"!=0){
+                                if(!all_pks.includes('{{question.pk}}')){
+                                      if(all_pks.length==2){
+                                      all_pks.pop()
+                                      }
+                                      all_pks.push('{{question.pk}}')
+                                  }
+
+                                window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks
+                          }
+
+                          else{
+                                  if(all_pks.length!=0){
+                                  console.log(all_pks)
+
+                                  window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks
+                                  }
+                                  else{window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page}
+                          //  window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page
+                          }
+        }
+
+
+        
+        function previous_page(){
+
+              var current_page = parseInt("{{page}}")-1
+                  
+
+              var all_questions_to_viz=document.querySelectorAll('[id=q_to_visualize]');
+              var all_pks= []
+
+
+              for(var i=0; i < all_questions_to_viz.length;i++){
+
+                all_pks.push(all_questions_to_viz[i].value)
+
+              }
+
+              if(all_pks.includes('{{question.pk}}') && document.getElementById("append_viz").checked==false){
+                all_pks = all_pks.filter(function(e) { return e !== '{{question.pk}}' })
+
+              }
+
+             
+
+              // if(document.getElementById("append_viz").checked==true && "{{page}}"!=0){
+              //     if(!all_pks.includes('{{question.pk}}')){
+              //       if(all_pks.length==2){
+              //         all_pks.pop()
+              //          }
+              //          all_pks.push('{{question.pk}}')
+              //     }
+                
+              //   window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks
+              // }
+              
+              // else{
+                if(all_pks.length!=0){
+                  console.log(all_pks)
+
+                  window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks
+                }
+                else{window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page}
+                   //  window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page
+             // }
+
+
+               // / window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page;
+                
+                
+            }
+
+            function next_page(){
+
+              var current_page = parseInt("{{page}}")+1
+
+
+
+
+                
+              var url_ =  '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page 
+
+
+
+
+
+              var all_questions_to_viz=document.querySelectorAll('[id=q_to_visualize]');
+              var all_pks= []
+
+              
+              for(var i=0; i < all_questions_to_viz.length;i++){
+
+
+                all_pks.push(all_questions_to_viz[i].value)
+
+
+              }
+
+
+
+              
+              
+
+              // if(all_pks.includes('{{question.pk}}') && document.getElementById("append_viz").checked==false){
+              //   all_pks = all_pks.filter(function(e) { return e !== '{{question.pk}}' })
+              // }
+
+              // if(document.getElementById("append_viz").checked==true && "{{page}}"!=0){
+
+              //    if(!all_pks.includes('{{question.pk}}')){
+              //       if(all_pks.length==2){
+              //         all_pks.pop()
+              //          }
+              //          all_pks.push('{{question.pk}}')
+              //   }
+
+              //   window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks
+
+              // }
+             
+             // else{
+
+                if(all_pks.length!=0){
+                  console.log('eleos')
+                  //debugger;
+                  var url_next = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page+'?append_to_viz='+all_pks
+                  window.location.href = url_next
+                }
+                else{
+                      window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page
+                  }
+              //}
+
+
+              
+
+              //console.log(save_answer())
+
+              
+            // window.location.href = '/survey_visualization/' +'{{survey.pk}}'+'/'+current_page;
+            // window.location.href = url_
+              
+              
+            }
+     
+
+</script>
+
+
+
+
+<nav aria-label="Page navigation example">
+  
+ 
+
+<div class = 'd-flex align-items-center'>
+<div class="container mt-5  ">
+
+    <div class="row ">
+
+      <div class="col-md-4 col-md-left">
+        <h4 class="font-weight-bold text-center mb-2">Select up to 2 Questions to visualize Users' Answers </h4>
+
+      </div> 
+
+      <br>
+
+      
+    </div>
+    
+    <div class="row">
+
+      <div class="col-md-5 col-md-left" >
+        <!-- Card Regular -->
+        <div class="card card-cascade">
+
+          <!-- Card content -->
+          <div class="card-body card-body-cascade text-center">
+
+            <!-- Title -->
+            <h4 class="card-title"><strong>{{survey.name | safe}}</strong></h4>
+            <hr>
+            <!-- Subtitle -->
+            <i class="fas fa-poll-h fa-3x blue-text mb-2"></i>
+            <p class="font-weight-normal">Your opinion matters</p>
+            <!-- Text -->
+            <p>{{survey.description| safe}} <span class="font-weight-bold"></span>
+            </p>
+          </div>
+         
+          <p id="QuestionText" class="text-center"></p>
+
+          <div id = 'QuestionDOM'>
+                <!-- <div class="form-check mb-4" >
+                  <input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>
+                  <label class="form-check-label" for="radio-119">Very good</label>
+                </div>
+
+
+                -->
+          </div>
+
+          <input type="password"  readonly="readonly" class="custom_input form-control " id="inputAnswer" placeholder="Password">
+
+          <div class="survey-footer clearfix">
+            <a type="button" id='nextpagesurvey' onclick="next_page()" class="btn btn-primary waves-effect waves-light ml-3 mb-3 ">Next
+              <i class="fa fa-paper-plane ml-1"></i>
+
+            </a>
+
+            <a  type="button"  onclick="previous_page()"  id='previouspagesurvey'  class=" custom_button btn btn-primary waves-effect waves-light ml-3 mb-3 ">  Previous
+            <i class="fa fa-paper-plane ml-1"></i>
+
+            </a>
+
+
+            <div id="append_viz_div" > <input onclick="check_visualization_event()" type="checkbox" id="append_viz" style="margin: 6px" name="vehicle1" value="Append"> <b>Append To visualization </b> </input></div>
+
+            <a type="button" href='/survey_list/1' class="btn btn-outline-primary waves-effect float-right mr-3 mb-3"
+              data-dismiss="modal">Cancel</a>
+
+          </div>
+          
+        </div>
+                <nav aria-label="Demo of active current page number">
+
+                   <ul id="survey_creator_pages" class="pagination">
+  
+                
+                   </ul>
+
+                </nav>
+                <div id='erroralert'>
+
+     
+      <br>
+
+
+                            <div class="card">
+                              {% if viz %}
+
+                                     {%for viz_ in viz %}
+                                          <div class="card-body" >
+                                             <input type="hidden" id="q_to_visualize" value='{{viz_.pk}}'>
+
+                                          Question: {{viz_.question_text | safe}}
+                                          Type: {{viz_.type | safe}}
+                                                          
+                                          </div>
+                                    {%endfor%} 
+                              {%else%}
+                                  <div class="card-body" >
+                                        <p class="text-danger">No questions Selected</p>
+                                    </div>
+                                    <script>
+
+                                    </script>
+                              {%endif%}  
+
+                      </div>
+                      {% if viz %}            
+                          <button onclick ='viz_these_questions()' id='viz_these_questions' style='margin-top:10px' type="button" class="btn btn-info">Visualize</button>
+                      {%endif%}  
+
+  </div>
+           
+         
+</div>
+     {% if html_plot %}            
+                      <div style=" margin-right:10px">
+                {{ html_plot|safe }}
+                    </div>   
+    {%endif%}  
+  
+</div>
+
+
+<script>
+
+     function add_existing_question(){
+  
+  
+  console.log('{{answer.body}}')
+ 
+  // document.getElementById('QuestionText').innerHTML = "{{question.choices}}"
+  // console.log(select_picker)
+  if('{{question}}'){
+
+    if('{{question.type}}'=='radio'){
+      
+      //removeRadio()
+      document.getElementById('inputAnswer').remove()
+      var target = document.getElementById('QuestionDOM');
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      
+      var str = target.innerHTML
+
+      var current_choices_ = '{{question.choices}}'.split(',')
+      for(var i_ =1; i_<current_choices_.length+1;i_++){
+            var checked_= ''
+             if('{{answer}}'){
+
+                if( current_choices_[i_-1] == '{{answer.body}}' ){
+                  checked_= 'checked'
+                }
+
+             }
+             else{
+              checked_ = 'checked'
+             }
+
+             str = str+ '<div id="radio'+ i_ +'" class="radquestion form-check mb-4" > <input class="form-check-input" name="group1" type="radio" id="radio-119" value="'+current_choices_[i_-1]+'" '+checked_+'>';
+                      str= str+'<label id="radio_text'+ i_ +'"  class="form-check-label" for="radio-319">'+
+                      current_choices_[i_-1]+'</label></div>'
+
+      }
+      target.innerHTML = str
+
+
+       $(":radio").click( function(){
+         return false
+            });
+    }
+    else if('{{question.type}}'=='integer'){
+      
+      //select_picker.value = "Integer Question"
+      var question_ = document.getElementById('QuestionText');
+
+      question_.innerHTML = '{{question.question_text}}'
+      document.getElementById('inputAnswer').placeholder='Integer type answer'
+      document.getElementById('inputAnswer').type="number"
+
+       if('{{answer}}'){
+        console.log('eleoe')
+        console.log('{{answer.body}}')
+        document.getElementById('inputAnswer').value = '{{answer.body}}'
+      }
+    }
+    else if('{{question.type}}'=='text'){
+     
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      document.getElementById('inputAnswer').placeholder='Text type answer'
+      document.getElementById('inputAnswer').type="text"
+       if('{{answer}}'){
+        console.log('{{answer.body}}')
+        document.getElementById('inputAnswer').value = '{{answer.body}}'
+      }
+    }
+    else if('{{question.type}}'=='float'){
+      
+      document.getElementById('inputAnswer').type="number"
+      //select_picker.value = "Integer Question"
+      var question_ = document.getElementById('QuestionText');
+      question_.innerHTML = '{{question.question_text}}'
+      document.getElementById('inputAnswer').placeholder='Float type answer'
+
+      if('{{answer}}'){
+        document.getElementById('inputAnswer').value = '{{answer.body}}'
+      }
+    }
+
+    // var str = target.innerHTML
+    //  str = str+ '<div id="radio'+ radioButtons_length +'" class="radquestion form-check mb-4" ><input class="form-check-input" name="group1" type="radio" id="radio-119" value="option1" checked>';
+    //       str= str+'<label id="radio_text'+ radioButtons_length +'" contenteditable="true" class="form-check-label" for="radio-319">*Edit Answer*</label></div>'
+    //  target.innerHTML = str
+    }
+  }
+
+
+  add_existing_question()
+
+
+
+   function init_paginator(){
+  var page_len = "{{questions_length}}"
+  var pagination_ul = document.getElementById('survey_creator_pages')
+  pagination_ul.innerHTM=''
+  for(var i=1;i<=page_len;i++){
+
+    if(i=="{{page}}"){
+     pagination_ul.innerHTML=pagination_ul.innerHTML+'<li class="page-item  active"><a class="page-link" >'+i+'</a></li>'
+     continue;
+    }
+    pagination_ul.innerHTML=pagination_ul.innerHTML+'<li class="page-item "><a class="page-link" >'+i+'</a></li>'
+  }
+
+}
+init_paginator()
+
+  if("{{page}}"==0){
+    
+        document.getElementById('append_viz_div').style.display = "none"
+        document.getElementById('previouspagesurvey').remove()
+        
+          document.getElementById('inputAnswer').remove()
+        document.getElementById('QuestionText').remove()
+      
+    
+
+  }
+
+
+  if("{{page}}"=="{{questions_length}}"){
+    document.getElementById('nextpagesurvey').remove()
+  }
+
+
+
+
+function init_checkbox_visualization(){
+            var all_questions_to_viz=document.querySelectorAll('[id=q_to_visualize]');
+              
+
+            var checkbox_append  = document.getElementById('append_viz')
+             
+            for(var i=0; i < all_questions_to_viz.length;i++){
+
+                  
+                if(all_questions_to_viz[i].value== '{{question.pk}}'){
+                  checkbox_append.checked= true
+                }
+
+              }
+
+
+}
+init_checkbox_visualization()
+</script>
+
+{% endblock content %}	

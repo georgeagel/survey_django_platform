@@ -223,16 +223,20 @@ function findSelection(field) {
            }
     }}
 
+    function visualize_survey(){
+              var id = '{{survey.pk}}'
+              if(id){ 
+              window.location.href = '/survey_visualization/'+id+'/{{page}}'
+              }
+    }
+
     function edit_survey(){
-    var id = '{{survey.pk}}'
+      var id = '{{survey.pk}}'
         if(id){ 
           window.location.href = '/survey_creator/'+id+'/0'
         }
-    
-    
-    
   
-  }
+    }
 </script>
 
 
@@ -298,9 +302,12 @@ function findSelection(field) {
               data-dismiss="modal">Cancel</a>
 
           </div>
-          <button onclick ='delete_this_survey()' id='deletethissurvey' type="button" class="btn btn-dark">Delete</button>
+          
          
-          <button onclick ='edit_survey()' id='editthissurvey' type="button" class="btn btn-info">Edit</button>
+          <button onclick ='edit_survey()' id='editthissurvey' type="button" class="btn btn-secondary">Edit</button>
+
+          <button onclick ='visualize_survey()' id='visualizesurvey' type="button" class="btn btn-info">Visualize</button>
+          <button onclick ='delete_this_survey()' id='deletethissurvey' type="button" class="btn btn-danger">Delete</button>
         </div>
                 <nav aria-label="Demo of active current page number">
 
@@ -451,6 +458,7 @@ init_paginator()
              
         document.getElementById('deletethissurvey').remove()
          document.getElementById('editthissurvey').remove()
+         document.getElementById('visualizesurvey').remove()
         console.log("{{questions_length}}")
              
   }

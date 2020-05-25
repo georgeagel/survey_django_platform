@@ -22,6 +22,7 @@ urlpatterns = [
     path('', views.index_view, name='survey_list'),
     path('name', views.get_name),
     path('admin/', admin.site.urls),
+    path('survey_visualization/<int:survey_id>/<int:page>', views.survey_visualization, name='survey_visualization'),
     path('survey_list/<int:page>',views.survey_list, name='survey_list'),
     path('survey_creator',views.survey_creator, name='survey_creator'),
     path('survey_creator/<int:survey_id>/<int:page>',views.survey_creator, name='survey_creator'),

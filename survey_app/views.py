@@ -8,7 +8,12 @@ import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.paginator import Paginator,PageNotAnInteger
+
+import plotly
+
 list_of_surveys_ =['If you like GeeksforGeeks','edasdsdsds','scary move','example','lol','ela re m','kala re','aaaaaaaaaaaaaaaaa','ena','toxelidoni','3232']
+
+
 
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -413,3 +418,94 @@ def get_name(request):
 # def index(request):
 #     return HttpResponse("Hello, world. You're at the polls index.")
 
+
+
+
+@api_view(['GET', 'POST'])
+def survey_visualization(request,survey_id =-1 ,page=0):
+
+    try:
+        survey_ = Survey.objects.get(pk= int(survey_id))
+        questions_ = Question.objects.filter(survey=survey_)
+
+        current_user = request.user
+        
+
+    
+        if(page==0):
+            append_to_viz= []
+            if('append_to_viz' in request.GET):
+                splited_ = request.GET['append_to_viz'].split(',')
+                if(len(splited_)==1):
+                    append_to_viz.append(splited_[0])
+                else:
+                    append_to_viz = splited_
+            
+            questions_to_visualize = [Question.objects.get(pk= int(i_)) for i_ in  append_to_viz]
+            return render(request, 'survey/survey_viz.html',{'survey' : survey_,'questions_length':len(questions_),'page':page,"viz":questions_to_visualize})      
+        else:
+            question_ = questions_[int(page)-1]
+            answers_query = Answer.objects.filter(question=question_,user=current_user)
+            answer_ = None
+
+
+            append_to_viz= []
+            if('append_to_viz' in request.GET):
+                splited_ = request.GET['append_to_viz'].split(',')
+                if(len(splited_)==1):
+                    append_to_viz.append(splited_[0])
+                else:
+                    append_to_viz = splited_
+            
+            questions_to_visualize = [Question.objects.get(pk= int(i_)) for i_ in  append_to_viz]
+
+            
+
+            viz_=None
+            if('viz' in request.GET and len(questions_to_visualize)==2):
+                viz_ = get_plot_plotly(questions_to_visualize)
+
+                
+
+            
+            if(len(answers_query)!=0):
+                answer_= answers_query[0]
+                return render(request, 'survey/survey_viz.html',{'survey' : survey_,"html_plot":viz_,
+                    'questions_length':len(questions_),'page':page,"viz":questions_to_visualize,'answer':answer_,'question':questions_[int(page)-1]})     
+            else:
+                return render(request, 'survey/survey_viz.html',{'survey' : survey_,"html_plot":viz_,
+                    'questions_length':len(questions_),'page':page,'question':question_,'answer':answer_,"viz":questions_to_visualize})     
+
+    except Exception as e:
+        print(e)
+        raise Http404(e)
+
+
+
+
+def get_plot_plotly(questions):
+    import plotly.graph_objs as go
+    import plotly.offline as opy
+
+    try:
+        x_ = Answer.objects.filter(question=questions[0])
+        y_ = Answer.objects.filter(question=questions[1])
+
+
+        if(len(questions)==2 and all(question_.type in ["integer","float"] for question_ in questions)):
+            x_ = [float(ans_.body) for ans_ in x_]
+            y_ = [float(ans_.body) for  ans_ in y_]
+            print(x_)
+            print(y_)
+            trace1 = go.Scatter(x=x_, y=y_, marker={'color': 'red', 'symbol': 104, 'size': 10},
+                                mode="lines",  name='1st Trace')
+            data=go.Data([trace1])
+            layout=go.Layout(title="Meine Daten", xaxis={'title':questions[0].question_text}, yaxis={'title':questions[1].question_text})
+            figure=go.Figure(data=data,layout=layout)
+            div = opy.plot(figure, auto_open=False, output_type='div')
+            return div
+        else:
+            return None
+    except Exception as e:
+        print(e)
+    return None
